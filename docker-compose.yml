@@ -1,0 +1,38 @@
+services:
+  pocket-tts:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: "8000"
+      POCKET_TTS_REPO: /app/pocket-tts
+      POCKET_TTS_CHECKPOINT: /models
+      POCKET_TTS_CHECKPOINT_FILENAME: step500-fm0.4251.ckpt
+      POCKET_TTS_CHECKPOINT_URL: ${POCKET_TTS_CHECKPOINT_URL:-https://drive.google.com/file/d/17lRzpUDzQh0FlMcJ4kXfrIXyjOtDSwlJ/view?usp=sharing}
+      POCKET_TTS_BASE_CONFIG: /app/pocket-tts/logs/pirula_tts/base_config.yaml
+      POCKET_TTS_TOKENIZER: /app/pocket-tts/logs/pirula_tts/tokenizer.model
+      POCKET_TTS_CACHE_DIR: /var/cache/pocket-tts
+      POCKET_TTS_DEVICE: ${POCKET_TTS_DEVICE:-cpu}
+    volumes:
+      - ${POCKET_TTS_SOURCE_PATH:-/home/fred/Projetos/pocket-tts}:/app/pocket-tts:ro
+      - pocket-tts-checkpoints:/models
+      - pocket-tts-cache:/var/cache/pocket-tts
+    restart: unless-stopped
+    init: true
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 30s
+      timeout: 5s
+      start_period: 30m
+      retries: 3
+
+volumes:
+  pocket-tts-checkpoints:
+  pocket-tts-cache:
