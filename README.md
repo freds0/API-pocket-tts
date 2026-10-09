@@ -36,20 +36,12 @@ the model checkout. The script installs PyTorch from PyPI. To use a different
 CUDA or CPU build, install the appropriate PyTorch version in the same
 environment.
 
-The API loads the checkpoint from `checkpoints/step500-fm0.4251.ckpt` at startup.
-If the checkpoint is absent, the configured Google Drive download remains a
-fallback. The Lightning checkpoint is exported to
-`.cache/model/<identifier>/model.safetensors`. This export
+The API loads the checkpoint from `checkpoints/` at startup. The Lightning
+checkpoint is exported to `.cache/model/<identifier>/model.safetensors`. This export
 contains only inference weights and uses the local architecture and tokenizer
 files, without downloading base weights. Allow about 1.3 GB for the cache, in
 addition to the environment dependencies, and enough memory to read the
 approximately 3.7 GB checkpoint during export.
-
-If the fallback Google Drive download is needed and anonymous downloads are
-blocked despite the file being shared with anyone, export Google cookies to a Netscape-format `cookies.txt` and set
-`GDOWN_COOKIES_HOST_PATH` in `.env` to its absolute host path. Compose mounts it
-for `gdown` to use and update. Treat this file as a credential and keep it out
-of version control. Google may also temporarily throttle public downloads.
 
 You can export the checkpoint before starting the server:
 
@@ -76,15 +68,9 @@ It also mounts this project's `checkpoints` directory at `/models`, so put
 `pocket-tts-cache` volume holds the exported model weights.
 
 The provided image uses CPU-only PyTorch. To use a GPU, build an image with the
-matching PyTorch CUDA distribution and set `POCKET_TTS_DEVICE=cuda:0`. The first
-download is about 3.7 GB; allow additional memory and storage for its 1.3 GB
+matching PyTorch CUDA distribution and set `POCKET_TTS_DEVICE=cuda:0`. The
+checkpoint is about 3.7 GB; allow additional memory and storage for its 1.3 GB
 inference export.
-
-You can download the checkpoint without starting the server:
-
-```bash
-python scripts/download_checkpoint.py
-```
 
 ## Configuration
 
@@ -96,8 +82,6 @@ set in the shell take precedence.
 | `API_HOST`, `API_PORT` | `0.0.0.0`, `8000` |
 | `POCKET_TTS_REPO` | Local Pocket-TTS checkout |
 | `POCKET_TTS_CHECKPOINT` | Checkpoint directory or file; defaults to `checkpoints/` |
-| `POCKET_TTS_CHECKPOINT_URL` | Google Drive URL for the checkpoint |
-| `POCKET_TTS_CHECKPOINT_FILENAME` | Download filename, by default `step500-fm0.4251.ckpt` |
 | `POCKET_TTS_BASE_CONFIG` | Training architecture YAML |
 | `POCKET_TTS_TOKENIZER` | Tokenizer used during training |
 | `POCKET_TTS_CACHE_DIR` | `.cache/model` inside this API project |

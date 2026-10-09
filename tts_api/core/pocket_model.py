@@ -12,8 +12,7 @@ from pathlib import Path
 import numpy as np
 
 from tts_api.config import ConfigManager
-from tts_api.core.checkpoint import prepare_config
-from tts_api.core.gdrive import ensure_checkpoint
+from tts_api.core.checkpoint import prepare_config, resolve_checkpoint
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +30,7 @@ class PocketTTSEngine:
 
         self.config = config
         self._lock = threading.Lock()
-        self.checkpoint_path = ensure_checkpoint(
-            config.POCKET_TTS_CHECKPOINT,
-            config.POCKET_TTS_CHECKPOINT_URL,
-            config.POCKET_TTS_CHECKPOINT_FILENAME,
-        )
+        self.checkpoint_path = resolve_checkpoint(config.POCKET_TTS_CHECKPOINT)
         self.model_id = str(self.checkpoint_path)
         self.finetuned = True
         self.optimize_requested = False

@@ -15,13 +15,9 @@ def main():
     logging.basicConfig(level=config.LOG_LEVEL.upper())
     if args.command == "export":
         from tts_api.core.checkpoint import prepare_config
-        from tts_api.core.gdrive import ensure_checkpoint
+        from tts_api.core.checkpoint import resolve_checkpoint
 
-        checkpoint = ensure_checkpoint(
-            config.POCKET_TTS_CHECKPOINT,
-            config.POCKET_TTS_CHECKPOINT_URL,
-            config.POCKET_TTS_CHECKPOINT_FILENAME,
-        )
+        checkpoint = resolve_checkpoint(config.POCKET_TTS_CHECKPOINT)
         print(prepare_config(
             checkpoint,
             config.POCKET_TTS_BASE_CONFIG,

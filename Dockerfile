@@ -28,7 +28,6 @@ RUN python -m pip install -r requirements-pocket-tts.txt
 COPY main.py ./
 COPY reference.wav ./reference.wav
 COPY tts_api ./tts_api
-COPY scripts/download_checkpoint.py ./scripts/download_checkpoint.py
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
 RUN mkdir -p /models /var/cache/pocket-tts \

@@ -21,11 +21,6 @@ class ConfigManager:
     SERVER_PORT = int(os.getenv("API_PORT", "8000"))
     LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
     POCKET_TTS_REPO = Path(os.getenv("POCKET_TTS_REPO", "/home/fred/Projetos/pocket-tts")).expanduser()
-    POCKET_TTS_CHECKPOINT_URL = os.getenv(
-        "POCKET_TTS_CHECKPOINT_URL",
-        "https://drive.google.com/file/d/17lRzpUDzQh0FlMcJ4kXfrIXyjOtDSwlJ/view?usp=sharing",
-    ).strip()
-    POCKET_TTS_CHECKPOINT_FILENAME = os.getenv("POCKET_TTS_CHECKPOINT_FILENAME", "step500-fm0.4251.ckpt")
     POCKET_TTS_CHECKPOINT = Path(os.getenv(
         "POCKET_TTS_CHECKPOINT",
         str(ROOT / "checkpoints"),
