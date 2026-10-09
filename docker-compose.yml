@@ -11,14 +11,17 @@ services:
       POCKET_TTS_REPO: /app/pocket-tts
       POCKET_TTS_CHECKPOINT: /models
       POCKET_TTS_CHECKPOINT_FILENAME: step500-fm0.4251.ckpt
-      POCKET_TTS_CHECKPOINT_URL: ${POCKET_TTS_CHECKPOINT_URL:-https://drive.google.com/file/d/17lRzpUDzQh0FlMcJ4kXfrIXyjOtDSwlJ/view?usp=sharing}
       POCKET_TTS_BASE_CONFIG: /app/pocket-tts/logs/pirula_tts/base_config.yaml
       POCKET_TTS_TOKENIZER: /app/pocket-tts/logs/pirula_tts/tokenizer.model
       POCKET_TTS_CACHE_DIR: /var/cache/pocket-tts
+      POCKET_TTS_VOICE_PROMPT: ${POCKET_TTS_VOICE_PROMPT:-/app/reference.wav}
+      POCKET_TTS_GDOWN_COOKIES_FILE: ${GDOWN_COOKIES_HOST_PATH:+/run/secrets/gdown-cookies.txt}
       POCKET_TTS_DEVICE: ${POCKET_TTS_DEVICE:-cpu}
     volumes:
       - ${POCKET_TTS_SOURCE_PATH:-/home/fred/Projetos/pocket-tts}:/app/pocket-tts:ro
-      - pocket-tts-checkpoints:/models
+      - ./reference.wav:/app/reference.wav:ro
+      - ${GDOWN_COOKIES_HOST_PATH:-/dev/null}:/run/secrets/gdown-cookies.txt:rw
+      - ./checkpoints:/models:ro
       - pocket-tts-cache:/var/cache/pocket-tts
     restart: unless-stopped
     init: true
@@ -34,5 +37,4 @@ services:
       retries: 3
 
 volumes:
-  pocket-tts-checkpoints:
   pocket-tts-cache:

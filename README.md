@@ -6,8 +6,7 @@ checkout, following the structure and audio contracts of the VoxCPM API at
 
 The server uses the code in `/home/fred/Projetos/pocket-tts`. Its defaults are:
 
-- Checkpoint: `logs/brspeech_douglas_tagarela600k/checkpoints/last.ckpt`.
-  During the initial inspection, this symlink pointed to `step500-fm0.4251.ckpt`.
+- Checkpoint: `checkpoints/step500-fm0.4251.ckpt`.
 - Architecture: `logs/pirula_tts/base_config.yaml`, with 24 layers.
 - Tokenizer: `logs/pirula_tts/tokenizer.model`.
 - Audio: mono, 24,000 Hz; the API encodes output as PCM16.
@@ -37,15 +36,20 @@ the model checkout. The script installs PyTorch from PyPI. To use a different
 CUDA or CPU build, install the appropriate PyTorch version in the same
 environment.
 
-The API downloads the checkpoint from Google Drive with `gdown` if it is missing,
-then loads the model once at startup. The download is locked across processes,
-resumes from a `.part` file after interruption, and checks that the result is a
-valid PyTorch ZIP checkpoint before publishing it. The Lightning checkpoint is
-exported to `.cache/model/<identifier>/model.safetensors`. This export
+The API loads the checkpoint from `checkpoints/step500-fm0.4251.ckpt` at startup.
+If the checkpoint is absent, the configured Google Drive download remains a
+fallback. The Lightning checkpoint is exported to
+`.cache/model/<identifier>/model.safetensors`. This export
 contains only inference weights and uses the local architecture and tokenizer
 files, without downloading base weights. Allow about 1.3 GB for the cache, in
 addition to the environment dependencies, and enough memory to read the
 approximately 3.7 GB checkpoint during export.
+
+If the fallback Google Drive download is needed and anonymous downloads are
+blocked despite the file being shared with anyone, export Google cookies to a Netscape-format `cookies.txt` and set
+`GDOWN_COOKIES_HOST_PATH` in `.env` to its absolute host path. Compose mounts it
+for `gdown` to use and update. Treat this file as a credential and keep it out
+of version control. Google may also temporarily throttle public downloads.
 
 You can export the checkpoint before starting the server:
 
@@ -67,11 +71,9 @@ docker compose up --build
 
 Compose mounts the local Pocket-TTS checkout at `/home/fred/Projetos/pocket-tts`
 by default. Set `POCKET_TTS_SOURCE_PATH` in `.env` if the checkout is elsewhere.
-The API code and image are built from this directory. On its first start, the
-container downloads the checkpoint into the persistent `pocket-tts-checkpoints`
-volume. The separate `pocket-tts-cache` volume holds the exported model weights.
-Both volumes survive `docker compose down`; remove them explicitly with
-`docker compose down --volumes` if you want to delete the downloaded files.
+It also mounts this project's `checkpoints` directory at `/models`, so put
+`step500-fm0.4251.ckpt` there before starting the container. The separate
+`pocket-tts-cache` volume holds the exported model weights.
 
 The provided image uses CPU-only PyTorch. To use a GPU, build an image with the
 matching PyTorch CUDA distribution and set `POCKET_TTS_DEVICE=cuda:0`. The first
@@ -93,14 +95,14 @@ set in the shell take precedence.
 | --- | --- |
 | `API_HOST`, `API_PORT` | `0.0.0.0`, `8000` |
 | `POCKET_TTS_REPO` | Local Pocket-TTS checkout |
-| `POCKET_TTS_CHECKPOINT` | Checkpoint directory or file; download destination if absent |
-| `POCKET_TTS_CHECKPOINT_URL` | Public Google Drive sharing link |
+| `POCKET_TTS_CHECKPOINT` | Checkpoint directory or file; defaults to `checkpoints/` |
+| `POCKET_TTS_CHECKPOINT_URL` | Google Drive URL for the checkpoint |
 | `POCKET_TTS_CHECKPOINT_FILENAME` | Download filename, by default `step500-fm0.4251.ckpt` |
 | `POCKET_TTS_BASE_CONFIG` | Training architecture YAML |
 | `POCKET_TTS_TOKENIZER` | Tokenizer used during training |
 | `POCKET_TTS_CACHE_DIR` | `.cache/model` inside this API project |
 | `POCKET_TTS_DEVICE` | `auto`: use CUDA if available, otherwise CPU |
-| `POCKET_TTS_VOICE_PROMPT` | Empty: synthesize without a reference; accepts local audio or a `.safetensors` state |
+| `POCKET_TTS_VOICE_PROMPT` | `reference.wav` in the project root; accepts local audio or a `.safetensors` state |
 | `POCKET_TTS_TEMPERATURE` | `0.7` |
 | `POCKET_TTS_LSD_DECODE_STEPS` | `1` |
 | `POCKET_TTS_EOS_THRESHOLD` | `-4.0` |
@@ -114,12 +116,10 @@ set in the shell take precedence.
 To require a GPU, set `POCKET_TTS_DEVICE=cuda:0`. Startup fails if CUDA is
 unavailable. For CPU testing, set `POCKET_TTS_DEVICE=cpu`.
 
-The Douglas reference recording specified in the training configuration
-(`/media/fred/FRED2TB/Datasets/BRSpeech/BRSpeech_CEIA_TTS_v09052024/douglas_cyberlabs/wavs/GS1-0001.wav`)
-was not found during implementation. The default therefore uses the checkpoint
-without an audio reference. This matches the training examples where the voice
-prompt was omitted; listen to the output to assess the resulting voice. To
-condition the voice, set:
+By default, synthesis uses `reference.wav` from the project root. Docker copies
+this file into the image and mounts the local file at `/app/reference.wav`. To
+use a different reference, set `POCKET_TTS_VOICE_PROMPT` to its path (and, with
+Docker Compose, update the mounted file path as needed):
 
 ```dotenv
 POCKET_TTS_VOICE_PROMPT=/path/to/douglas_reference.wav
@@ -195,6 +195,7 @@ item has an `index` starting at 1, metadata, binary frames, and
 With the environment activated:
 
 ```bash
+python scripts/inference.py --input sentences.txt --output outputs/speech.wav
 python scripts/inference.py --text "Hello, how are you?" --output outputs/speech.wav
 python scripts/inference.py --stream --output outputs/stream.wav
 python scripts/inference.py --format mp3 --output outputs/speech.mp3

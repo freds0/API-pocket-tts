@@ -8,6 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     POCKET_TTS_BASE_CONFIG=/app/pocket-tts/logs/pirula_tts/base_config.yaml \
     POCKET_TTS_TOKENIZER=/app/pocket-tts/logs/pirula_tts/tokenizer.model \
     POCKET_TTS_CACHE_DIR=/var/cache/pocket-tts \
+    POCKET_TTS_VOICE_PROMPT=/app/reference.wav \
     POCKET_TTS_DEVICE=cpu \
     API_HOST=0.0.0.0 \
     API_PORT=8000
@@ -25,6 +26,7 @@ COPY requirements-pocket-tts.txt ./
 RUN python -m pip install -r requirements-pocket-tts.txt
 
 COPY main.py ./
+COPY reference.wav ./reference.wav
 COPY tts_api ./tts_api
 COPY scripts/download_checkpoint.py ./scripts/download_checkpoint.py
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint

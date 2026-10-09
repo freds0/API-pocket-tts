@@ -1,6 +1,7 @@
 """Download a public Google Drive checkpoint once, with locking and resume support."""
 
 import logging
+import os
 import zipfile
 from pathlib import Path
 
@@ -18,7 +19,7 @@ def ensure_checkpoint(
     filename: str = "step500-fm0.4251.ckpt",
     minimum_bytes: int = DEFAULT_MINIMUM_BYTES,
 ) -> Path:
-    """Return a local checkpoint, downloading the configured Drive file if absent."""
+    """Return a local checkpoint, downloading it from the configured Drive URL."""
     checkpoint_path = checkpoint_path.expanduser()
     destination = checkpoint_path if checkpoint_path.suffix else checkpoint_path / filename
 
@@ -41,15 +42,29 @@ def ensure_checkpoint(
                 )
             return destination.resolve()
 
+        # gdown may treat an existing output as a completed download, even when
+        # a previous run left behind an HTML error page or a truncated file.
+        if partial.is_file() and (
+            partial.stat().st_size < minimum_bytes or not zipfile.is_zipfile(partial)
+        ):
+            logger.warning("Removing invalid partial checkpoint download: %s", partial)
+            partial.unlink()
+
         import gdown
 
         logger.info("Downloading Pocket-TTS checkpoint from Google Drive to %s", destination)
+        download_options = {
+            "url": url,
+            "output": str(partial),
+            "quiet": False,
+            "resume": True,
+        }
+        cookies_file = os.getenv("POCKET_TTS_GDOWN_COOKIES_FILE", "").strip()
+        if cookies_file:
+            logger.info("Using Google Drive cookies from %s", cookies_file)
+            download_options["cookies_file"] = cookies_file
         downloaded = gdown.download(
-            url=url,
-            output=str(partial),
-            quiet=False,
-            fuzzy=True,
-            resume=True,
+            **download_options,
         )
         if not downloaded or not partial.is_file():
             raise RuntimeError(
@@ -57,9 +72,13 @@ def ensure_checkpoint(
                 "is publicly accessible and that this host/container has network access."
             )
         if partial.stat().st_size < minimum_bytes or not zipfile.is_zipfile(partial):
+            size = partial.stat().st_size
+            with partial.open("rb") as stream:
+                signature = stream.read(160).decode("utf-8", errors="replace").replace("\n", " ")
             raise ValueError(
-                f"Downloaded file is incomplete or is not a PyTorch checkpoint: {partial}. "
-                "The partial file was kept so gdown can resume the download."
+                f"Downloaded file is incomplete or is not a PyTorch checkpoint: {partial} "
+                f"({size} bytes; starts with {signature!r}). Verify that the configured "
+                "Google Drive URL points to the publicly accessible checkpoint file."
             )
         partial.replace(destination)
         logger.info("Checkpoint download complete: %s (%d bytes)", destination, destination.stat().st_size)

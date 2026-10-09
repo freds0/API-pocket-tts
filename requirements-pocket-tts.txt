@@ -15,6 +15,7 @@ scipy>=1.13,<2
 einops>=0.4
 huggingface_hub>=0.13
 requests>=2.20
+gdown>=6
 PyYAML>=6
 soundfile>=0.12
 filelock>=3.13

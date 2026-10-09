@@ -24,11 +24,11 @@ class ConfigManager:
     POCKET_TTS_CHECKPOINT_URL = os.getenv(
         "POCKET_TTS_CHECKPOINT_URL",
         "https://drive.google.com/file/d/17lRzpUDzQh0FlMcJ4kXfrIXyjOtDSwlJ/view?usp=sharing",
-    )
+    ).strip()
     POCKET_TTS_CHECKPOINT_FILENAME = os.getenv("POCKET_TTS_CHECKPOINT_FILENAME", "step500-fm0.4251.ckpt")
     POCKET_TTS_CHECKPOINT = Path(os.getenv(
         "POCKET_TTS_CHECKPOINT",
-        str(POCKET_TTS_REPO / "logs/brspeech_douglas_tagarela600k/checkpoints"),
+        str(ROOT / "checkpoints"),
     )).expanduser()
     POCKET_TTS_BASE_CONFIG = Path(os.getenv(
         "POCKET_TTS_BASE_CONFIG", str(POCKET_TTS_REPO / "logs/pirula_tts/base_config.yaml")
@@ -38,8 +38,9 @@ class ConfigManager:
     )).expanduser()
     POCKET_TTS_CACHE_DIR = Path(os.getenv("POCKET_TTS_CACHE_DIR", str(ROOT / ".cache/model"))).expanduser()
     POCKET_TTS_DEVICE = os.getenv("POCKET_TTS_DEVICE", "auto")
-    # Empty means unconditional synthesis from the finetuned checkpoint.
-    POCKET_TTS_VOICE_PROMPT = os.getenv("POCKET_TTS_VOICE_PROMPT", "").strip()
+    POCKET_TTS_VOICE_PROMPT = os.getenv(
+        "POCKET_TTS_VOICE_PROMPT", str(ROOT / "reference.wav")
+    ).strip()
     DEFAULT_VOICE = "douglas"
     POCKET_TTS_TEMPERATURE = float(os.getenv("POCKET_TTS_TEMPERATURE", "0.7"))
     POCKET_TTS_LSD_DECODE_STEPS = int(os.getenv("POCKET_TTS_LSD_DECODE_STEPS", "1"))

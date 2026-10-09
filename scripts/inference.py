@@ -11,18 +11,23 @@ import httpx
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", default="http://127.0.0.1:8000")
-    parser.add_argument("--text", default="Olá! Esta é a API do Pocket TTS em português.")
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument("--input", type=Path, default=Path("sentences.txt"))
+    source.add_argument("--text", help="Use this text instead of reading the input file")
     parser.add_argument("--output", type=Path, default=Path("outputs/sample.wav"))
     parser.add_argument("--format", choices=["wav", "mp3"], default="wav")
     parser.add_argument("--stream", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--temperature", type=float, default=0.7)
     args = parser.parse_args()
+    text = args.text if args.text is not None else args.input.read_text(encoding="utf-8").strip()
+    if not text:
+        parser.error(f"input text is empty: {args.input}")
     if args.stream and args.format != "wav":
         parser.error("--stream saves raw PCM as WAV; choose --format wav")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     payload = {
-        "text": args.text, "voice": "douglas", "format": args.format,
+        "text": text, "voice": "douglas", "format": args.format,
         "seed": args.seed, "temperature": args.temperature,
     }
     started = time.perf_counter()
