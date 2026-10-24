@@ -26,10 +26,11 @@ class ConfigManager:
         str(ROOT / "checkpoints"),
     )).expanduser()
     POCKET_TTS_BASE_CONFIG = Path(os.getenv(
-        "POCKET_TTS_BASE_CONFIG", str(POCKET_TTS_REPO / "logs/pirula_tts/base_config.yaml")
+        "POCKET_TTS_BASE_CONFIG", str(POCKET_TTS_REPO / "training/configs/tagarela_600k_base.yaml")
     )).expanduser()
     POCKET_TTS_TOKENIZER = Path(os.getenv(
-        "POCKET_TTS_TOKENIZER", str(POCKET_TTS_REPO / "logs/pirula_tts/tokenizer.model")
+        "POCKET_TTS_TOKENIZER",
+        str(POCKET_TTS_REPO / "cache/hf_cache/hub/models--kyutai--pocket-tts-without-voice-cloning/snapshots/d29db7978e464fb90cb3359ee0c69a273b9142cc/languages/portuguese_24l/tokenizer.model"),
     )).expanduser()
     POCKET_TTS_CACHE_DIR = Path(os.getenv("POCKET_TTS_CACHE_DIR", str(ROOT / ".cache/model"))).expanduser()
     POCKET_TTS_DEVICE = os.getenv("POCKET_TTS_DEVICE", "auto")

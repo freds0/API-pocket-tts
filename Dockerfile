@@ -5,8 +5,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     POCKET_TTS_REPO=/app/pocket-tts \
     POCKET_TTS_CHECKPOINT=/models \
-    POCKET_TTS_BASE_CONFIG=/app/pocket-tts/logs/pirula_tts/base_config.yaml \
-    POCKET_TTS_TOKENIZER=/app/pocket-tts/logs/pirula_tts/tokenizer.model \
+    POCKET_TTS_BASE_CONFIG=/app/pocket-tts/training/configs/tagarela_600k_base.yaml \
+    POCKET_TTS_TOKENIZER=/app/pocket-tts/cache/hf_cache/hub/models--kyutai--pocket-tts-without-voice-cloning/snapshots/d29db7978e464fb90cb3359ee0c69a273b9142cc/languages/portuguese_24l/tokenizer.model \
     POCKET_TTS_CACHE_DIR=/var/cache/pocket-tts \
     POCKET_TTS_VOICE_PROMPT=/app/reference.wav \
     POCKET_TTS_DEVICE=cpu \
@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install the CPU wheel explicitly so the default image does not pull CUDA libraries.
-RUN python -m pip install --index-url https://download.pytorch.org/whl/cpu \
+RUN python -m pip install --index-url https://download.pytorch.org/whl/cpu --no-deps \
         "torch>=2.5,<3"
 
 WORKDIR /app

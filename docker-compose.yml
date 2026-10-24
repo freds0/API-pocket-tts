@@ -10,8 +10,8 @@ services:
       API_PORT: "8000"
       POCKET_TTS_REPO: /app/pocket-tts
       POCKET_TTS_CHECKPOINT: /models
-      POCKET_TTS_BASE_CONFIG: /app/pocket-tts/logs/pirula_tts/base_config.yaml
-      POCKET_TTS_TOKENIZER: /app/pocket-tts/logs/pirula_tts/tokenizer.model
+      POCKET_TTS_BASE_CONFIG: /app/pocket-tts/training/configs/tagarela_600k_base.yaml
+      POCKET_TTS_TOKENIZER: /app/pocket-tts/cache/hf_cache/hub/models--kyutai--pocket-tts-without-voice-cloning/snapshots/d29db7978e464fb90cb3359ee0c69a273b9142cc/languages/portuguese_24l/tokenizer.model
       POCKET_TTS_CACHE_DIR: /var/cache/pocket-tts
       POCKET_TTS_VOICE_PROMPT: ${POCKET_TTS_VOICE_PROMPT:-/app/reference.wav}
       POCKET_TTS_DEVICE: ${POCKET_TTS_DEVICE:-cpu}

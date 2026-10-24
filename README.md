@@ -6,9 +6,9 @@ checkout, following the structure and audio contracts of the VoxCPM API at
 
 The server uses the code in `/home/fred/Projetos/pocket-tts`. Its defaults are:
 
-- Checkpoint: `checkpoints/step500-fm0.4251.ckpt`.
-- Architecture: `logs/pirula_tts/base_config.yaml`, with 24 layers.
-- Tokenizer: `logs/pirula_tts/tokenizer.model`.
+- Checkpoint: `checkpoints/last.ckpt` (selected before any numbered checkpoint).
+- Architecture: `training/configs/tagarela_600k_base.yaml`, with 24 layers.
+- Tokenizer: `cache/hf_cache/hub/models--kyutai--pocket-tts-without-voice-cloning/snapshots/d29db7978e464fb90cb3359ee0c69a273b9142cc/languages/portuguese_24l/tokenizer.model`.
 - Audio: mono, 24,000 Hz; the API encodes output as PCM16.
 - Logical voice: `douglas`.
 
@@ -49,8 +49,8 @@ You can export the checkpoint before starting the server:
 python main.py export
 ```
 
-If `last.ckpt` is missing, the server selects the `.ckpt` file with the highest
-numeric step. To pin a checkpoint, set the full path to the file. A change to
+The server always uses `last.ckpt` when that file exists. If it is absent, it
+selects the `.ckpt` file with the highest numeric step. To pin a checkpoint, set the full path to the file. A change to
 the checkpoint, configuration, or tokenizer creates a new cache entry.
 
 ## Docker
@@ -63,8 +63,9 @@ docker compose up --build
 
 Compose mounts the local Pocket-TTS checkout at `/home/fred/Projetos/pocket-tts`
 by default. Set `POCKET_TTS_SOURCE_PATH` in `.env` if the checkout is elsewhere.
-It also mounts this project's `checkpoints` directory at `/models`, so put
-`step500-fm0.4251.ckpt` there before starting the container. The separate
+This API also mounts its `checkpoints` directory at `/models`. Keep the
+current checkpoint at `checkpoints/last.ckpt`; the container resolves it as
+`/models/last.ckpt` at startup. The separate
 `pocket-tts-cache` volume holds the exported model weights.
 
 The provided image uses CPU-only PyTorch. To use a GPU, build an image with the
@@ -183,6 +184,9 @@ python scripts/inference.py --input sentences.txt --output outputs/speech.wav
 python scripts/inference.py --text "Hello, how are you?" --output outputs/speech.wav
 python scripts/inference.py --stream --output outputs/stream.wav
 python scripts/inference.py --format mp3 --output outputs/speech.mp3
+
+# Each nonempty input line is synthesized separately as speech_001.wav, speech_002.wav, etc.
+# The client prints request duration and, in stream mode, time to first audio.
 
 # Contract, export, and stream shutdown tests; these do not load the real checkpoint.
 python -m pytest -q
